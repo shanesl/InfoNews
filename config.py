@@ -21,8 +21,14 @@ class Config:
 
 # 配置信息子类化
 class DevelopmentConfig(Config):  # 开发环境配置信息
-    DEBUG = True # 设置调试模式
+    DEBUG = True  # 设置调试模式
 
 
 class ProductionConfig(Config):  # 生产环境配置信息
     DEBUG = False
+
+
+config_dict = {
+    "dev": DevelopmentConfig,
+    "pro": ProductionConfig
+}
