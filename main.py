@@ -13,10 +13,6 @@ mgr = Manager(app)
 mgr.add_command("mc", MigrateCommand)
 
 
-@app.route("/")
-def index():
-    session["name"]= "sl"
-    return "首页"
 
 
 if __name__ == "__main__":

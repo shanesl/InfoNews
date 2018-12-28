@@ -22,6 +22,11 @@ def create_app(config_type):
     # 初始化session存储对象
     Session(app)
 
+    # 注册蓝图对象
+    from info.home import home_blu
+    # 为了导入错误，对于只使用一次的引用 在使用前导入
+    app.register_blueprint(home_blu)
+
     # 初始化迁移器
     Migrate(app, db)
 
