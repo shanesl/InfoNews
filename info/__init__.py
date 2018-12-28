@@ -40,4 +40,7 @@ def create_app(config_type):
     # 初始化迁移器
     Migrate(app, db)
 
+    # 项目关联模型文件   import * 方法不能在函数/方法中使用
+    # from info import models
+    import info.models
     return app
