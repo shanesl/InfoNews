@@ -1,11 +1,17 @@
-from flask import request, abort, current_app, make_response, Response
+import random
+
+from flask import request, abort, current_app, make_response, Response, jsonify
 
 from info import rs
-from info.constants import IMAGE_CODE_REDIS_EXPIRES
+from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
 from info.libs.captcha.pic_captcha import captcha
+from info.libs.yuntongxun.sms import CCP
 from info.passport import passport_blu
 
 # 获取验证码
+from info.utils.response_code import RET, error_map
+
+
 @passport_blu.route("/get_img_code")
 def get_img_code():
     # 获取参数
@@ -31,3 +37,45 @@ def get_img_code():
     return response
 
 
+# 获取短信验证码
+@passport_blu.route("/get_sms_code",methods=["POST"])
+def get_sms_code():
+    # 获取参数
+    img_code_id = request.json.get("img_code_id")
+    img_code = request.json.get("img_code")
+    mobile = request.json.get("mobile")
+    # 校验参数
+    if not all([img_code_id,img_code,mobile]):
+        return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+
+    # 根据图片key取出验证码文字
+    try:
+        real_img_code =rs.get("img_code_id" + img_code_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg=error_map[RET.DBERR])
+
+    # 校验图片验证码（文字）
+    if real_img_code != img_code.upper():
+        return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+
+    # 生成随机短信验证码
+    rand_num = "%04d" % random.randint(0,9999)   # 4位随机数
+
+    # # 发送短信
+    # response_code = CCP().send_template_sms(mobile,[rand_num,5],1)
+    # if response_code!= 0:   # 发送失败
+    #     return jsonify(RET.THIRDERR,errmsg=error_map[RET.THIRDERR])
+
+    # 保存短信
+    try:
+        rs.set("sms_code_id"+mobile,rand_num,ex=SMS_CODE_REDIS_EXPIRES)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg=error_map[RET.DBERR])
+
+    # 控制台打印短信验证码
+    current_app.logger.info("短信验证码位：%s" % rand_num)
+
+    # json 返回发送结果
+    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])

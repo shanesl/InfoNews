@@ -29,7 +29,7 @@ def create_app(config_type):
     # 创建msql连接对象
     db = SQLAlchemy(app)
     # 创建redis连接对象
-    rs = Redis(host=config_class.REDIS_HOST, port=config_class.REDIS_PORT)
+    rs = Redis(host=config_class.REDIS_HOST, port=config_class.REDIS_PORT,decode_responses=True)
 
     # 初始化session存储对象
     Session(app)
