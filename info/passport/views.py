@@ -3,7 +3,7 @@ import random
 from flask import request, abort, current_app, make_response, Response, jsonify
 
 from info import rs
-from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
+from info.utils.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
 from info.libs.captcha.pic_captcha import captcha
 from info.libs.yuntongxun.sms import CCP
 from info.passport import passport_blu
@@ -62,10 +62,10 @@ def get_sms_code():
     # 生成随机短信验证码
     rand_num = "%04d" % random.randint(0,9999)   # 4位随机数
 
-    # # 发送短信
-    # response_code = CCP().send_template_sms(mobile,[rand_num,5],1)
-    # if response_code!= 0:   # 发送失败
-    #     return jsonify(RET.THIRDERR,errmsg=error_map[RET.THIRDERR])
+    # 发送短信
+    response_code = CCP().send_template_sms(mobile,[rand_num,5],1)
+    if response_code!= 0:   # 发送失败
+        return jsonify(RET.THIRDERR,errmsg=error_map[RET.THIRDERR])
 
     # 保存短信
     try:

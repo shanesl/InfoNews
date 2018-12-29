@@ -48,7 +48,7 @@ def create_app(config_type):
 
     # 项目关联模型文件   import * 方法不能在函数/方法中使用
     # from info import models
-    import info.models
+    import info.utils.models
 
     # 配置日志
     setup_log(config_class.LOGLEVEL)

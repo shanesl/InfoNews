@@ -1,10 +1,14 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from info import constants, db
+from info import db
+
 
 
 # 表基类    为每个表添加共同的字段: 记录的创建时间与更新时间
+from info.utils import constants
+
+
 class BaseModel(object):
     create_time = db.Column(db.DateTime, default=datetime.now)  # 记录的创建时间  default参数用于设置字段的默认值, 可以为基本类型/函数引用
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)  # 记录的更新时间   当记录发生数据更新时, 字段会修改为onupdate参数的值
