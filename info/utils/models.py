@@ -50,6 +50,8 @@ class User(BaseModel, db.Model):
     # 当前用户所发布的新闻
     news_list = db.relationship('News', backref='user', lazy='dynamic')
 
+
+    # 计算型属性：对属性赋值/取值时，会调用对应方法，可以在方法中封装一些处理   常量属性装饰器的应用
     @property
     def password(self):
         raise AttributeError("该属性不能取值")
@@ -57,7 +59,7 @@ class User(BaseModel, db.Model):
     @password.setter
     def password(self, value):
         # 封装加密过程
-        self.password_hash = generate_password_hash(value)
+        self.password_hash = generate_password_hash(value)    # 设置密码 存储时，会自动加密
 
     def check_password(self, password):
         """
