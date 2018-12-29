@@ -9,6 +9,7 @@ from info.libs.yuntongxun.sms import CCP
 from info.passport import passport_blu
 
 # 获取验证码
+from info.utils.models import User
 from info.utils.response_code import RET, error_map
 
 
@@ -58,6 +59,18 @@ def get_sms_code():
     # 校验图片验证码（文字）
     if real_img_code != img_code.upper():
         return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+
+    # 获取短信验证码 细节处理
+    # 用户存在则不需要重新注册
+    # 判断用户是否存在
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg=error_map[RET.DBERR])
+
+    if user:
+        return jsonify(errno=RET.DATAEXIST,errmsg=error_map[RET.DATAEXIST])
 
     # 生成随机短信验证码
     rand_num = "%04d" % random.randint(0,9999)   # 4位随机数
