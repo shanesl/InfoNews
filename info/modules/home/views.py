@@ -1,6 +1,7 @@
-from info.home import home_blu
+
 from flask import render_template, current_app, session
 
+from info.modules.home import home_blu
 from info.utils.models import User
 
 
@@ -15,7 +16,6 @@ def index():
         except BaseException as e:
             current_app.logger.error(e)
 
-    # 用户存在 则用户对象信息专成字典格式存储，否则则为None
     user = user.to_dict() if user else None
 
     return render_template("index.html",user=user)

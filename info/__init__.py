@@ -39,7 +39,7 @@ def create_app(config_type):
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(home_blu)
     # 注册蓝图对象
-    from info.passport import passport_blu
+    from info.modules.passport import passport_blu
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(passport_blu)
 

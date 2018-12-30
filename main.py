@@ -11,5 +11,6 @@ mgr = Manager(app)
 # 使用管理器生成迁移命令
 mgr.add_command("mc", MigrateCommand)
 
+
 if __name__ == "__main__":
     mgr.run()
