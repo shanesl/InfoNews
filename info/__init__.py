@@ -10,6 +10,7 @@ from redis import Redis
 from config import config_dict
 
 # 定义全局变量，记录数据库连接对象，以便其他文件可以使用
+from info.utils.common import func_index_convert
 
 db = None  # type:SQLAlchemy
 rs = None  # type:Redis
@@ -44,6 +45,8 @@ def create_app(config_type):
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(passport_blu)
 
+    # 添加过滤器到应用
+    app.add_template_filter(func_index_convert,"index_convert")
     # 初始化迁移器
     Migrate(app, db)
 
