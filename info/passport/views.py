@@ -183,3 +183,11 @@ def login():
 
     # json返回数据
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+
+# 用户退出
+@passport_blu.route("/logout")
+def logout():
+    session.pop("user_id",None)
+
+    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])
