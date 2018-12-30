@@ -10,6 +10,7 @@ from redis import Redis
 from config import config_dict
 
 # 定义全局变量，记录数据库连接对象，以便其他文件可以使用
+
 db = None  # type:SQLAlchemy
 rs = None  # type:Redis
 
@@ -35,7 +36,7 @@ def create_app(config_type):
     Session(app)
 
     # 注册蓝图对象
-    from info.home import home_blu
+    from info.modules.home import home_blu
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(home_blu)
     # 注册蓝图对象
