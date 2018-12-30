@@ -1,5 +1,7 @@
+
 import random
 import re
+from datetime import datetime
 
 from flask import request, abort, current_app, make_response, Response, jsonify, session
 
@@ -47,6 +49,7 @@ def get_sms_code():
     img_code = request.json.get("img_code")
     mobile = request.json.get("mobile")
     # 校验参数
+    print(img_code_id,img_code,mobile)
     if not all([img_code_id, img_code, mobile]):
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
@@ -57,6 +60,8 @@ def get_sms_code():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
 
+    print("实际验证码：",real_img_code)
+    print("获取到的验证码",img_code)
     # 校验图片验证码（文字）
     if real_img_code != img_code.upper():
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
@@ -76,10 +81,10 @@ def get_sms_code():
     # 生成随机短信验证码
     rand_num = "%04d" % random.randint(0, 9999)  # 4位随机数
 
-    # 发送短信
-    response_code = CCP().send_template_sms(mobile, [rand_num, 5], 1)
-    if response_code != 0:  # 发送失败
-        return jsonify(RET.THIRDERR, errmsg=error_map[RET.THIRDERR])
+    # # 发送短信
+    # response_code = CCP().send_template_sms(mobile, [rand_num, 5], 1)
+    # if response_code != 0:  # 发送失败
+    #     return jsonify(RET.THIRDERR, errmsg=error_map[RET.THIRDERR])
 
     # 保存短信
     try:
@@ -103,12 +108,15 @@ def register():
     mobile = request.json.get("mobile")
     password = request.json.get("password")
     # 校验参数
+    # print(sms_code,mobile,password)
     if not all([sms_code, mobile, password]):
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
     # 手机号校验
-    if re.match(r"1[345678]\d{9}$", mobile):
+    if not re.match(r"1[345678]\d{9}$", mobile):
+        # print("手机校验失败")
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
     # 校验短信验证码，更具手机号取出短信验证码
+    # print("手机校验通过了")
     try:
         real_sms_code = rs.get("sms_code_id" + mobile)
     except BaseException as e:
@@ -116,6 +124,7 @@ def register():
         return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
     # 如获取到了验证码
     if real_sms_code != sms_code:
+        # print("验证码错误")
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
     # 记录用户数据
@@ -139,3 +148,38 @@ def register():
 
     # json 返回结果
     return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])
+
+
+# 用户登录
+@passport_blu.route("/login",methods=["POST"])
+def login():
+    # 获取参数
+    mobile = request.json.get("mobile")
+    password = request.json.get("password")
+    # 校验参数
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 取出用户数据
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    # 判断用户是否存在
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg=error_map[RET.USERERR])
+
+    # 校验密码
+    if not user.check_password(password):
+        return jsonify(errno=RET.PWDERR, errmsg=error_map[RET.PWDERR])
+
+    # 使用session记录用户登录状态 记录主键就可以查询出其他的数据
+    session["user_id"] = user.id
+
+    # 记录最后登录时间  使用sqlalchemy自动提交机制
+    user.last_login = datetime.now()
+
+    # json返回数据
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])

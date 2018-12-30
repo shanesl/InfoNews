@@ -1,10 +1,24 @@
 from info.home import home_blu
-from flask import render_template, current_app
+from flask import render_template, current_app, session
+
+from info.utils.models import User
 
 
 @home_blu.route("/")
 def index():
-    return render_template("index.html")
+    # 判断用户是否已登录
+    user_id =session.get("user_id")
+    user = None
+    if user_id:  # 已登录
+        try:
+            user = User.query.get(user_id)
+        except BaseException as e:
+            current_app.logger.error(e)
+
+    # 用户存在 则用户对象信息专成字典格式存储，否则则为None
+    user = user.to_dict() if user else None
+
+    return render_template("index.html",user=user)
 
 
 # 创建网站图标路由 (浏览器会自动向网站发起/favicon.ico请求，后端只需要实现该路由，并返回图片即可)
