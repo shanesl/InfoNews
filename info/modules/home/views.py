@@ -46,7 +46,7 @@ def favico():
 def get_news_list():
     # 获取参数
     cid = request.args.get("cid")  # 新闻分类id
-    cur_page = request.args.get("cur_page") # 当前页码
+    cur_page = request.args.get("cur_page")  # 当前页码
     per_count = request.args.get("per_count", HOME_PAGE_MAX_NEWS)  # 每页条数
     # 校验参数
     if not all([cid, cur_page, per_count]):
@@ -60,16 +60,26 @@ def get_news_list():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
-    # 根据分类，页码查询新闻数据
-    try:
-        pn = News.query.filter_by(category_id=cid).paginate(cur_page, per_count)
+    # 根据分类，页码查询新闻数据 根据新闻发布时间查询
+    # try:
+    #     if cid == 1:
+    #         pn = News.query.order_by(News.create_time.desc()).paginate(cur_page, per_count)
+    #     else:
+    #         pn = News.query.filter_by(category_id=cid).order_by(News.create_time.desc()).paginate(cur_page, per_count)
+
+    filter_list = []
+    if cid != 1: # 不是 最新
+        filter_list.append(News.category_id == cid)
+    try:    #
+        pn = News.query.filter(*filter_list).order_by(News.create_time.desc()).paginate(cur_page, per_count)
+
     except BaseException as  e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg=error_map[RET.DBERR])
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
 
     # 把新闻数据包装成json 返回
-    data ={
-        "news_list":[news.to_basic_dict() for news in pn.items],
-        "total_page":pn.page
+    data = {
+        "news_list": [news.to_basic_dict() for news in pn.items],
+        "total_page": pn.page
     }
-    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK],data=data)
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], data=data)
