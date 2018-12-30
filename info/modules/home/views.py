@@ -1,8 +1,8 @@
-from flask import render_template, current_app, session, request, jsonify
+from flask import render_template, current_app, session, request, jsonify, abort
 
 from info.modules.home import home_blu
 from info.utils.constants import HOME_PAGE_MAX_NEWS
-from info.utils.models import User, News
+from info.utils.models import User, News, Category
 from info.utils.response_code import RET, error_map
 
 
@@ -24,12 +24,19 @@ def index():
     except BaseException as e:
         current_app.logger.error(e)
 
+    # 查询所有分类数据
+    try:
+        categorys = Category.query.all()
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(500)
+
     # 使用列表推导式获取新闻对象，并将新闻对象转换为字典
     rank_list = [news.to_basic_dict() for news in rank_list]
 
     user = user.to_dict() if user else None
 
-    return render_template("index.html", user=user, rank_list=rank_list)
+    return render_template("index.html", user=user, rank_list=rank_list,categorys=categorys)
 
 
 # 创建网站图标路由 (浏览器会自动向网站发起/favicon.ico请求，后端只需要实现该路由，并返回图片即可)
