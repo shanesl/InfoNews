@@ -1,4 +1,4 @@
-from flask import render_template, current_app, session, request, jsonify, abort
+from flask import render_template, current_app, session, request, jsonify,abort
 
 from info.modules.home import home_blu
 from info.utils.constants import HOME_PAGE_MAX_NEWS
@@ -24,9 +24,9 @@ def index():
     except BaseException as e:
         current_app.logger.error(e)
 
-    # 查询所有分类数据
+    # 查询所有的分类数据
     try:
-        categorys = Category.query.all()
+        categories = Category.query.all()
     except BaseException as e:
         current_app.logger.error(e)
         return abort(500)
@@ -36,7 +36,7 @@ def index():
 
     user = user.to_dict() if user else None
 
-    return render_template("index.html", user=user, rank_list=rank_list,categorys=categorys)
+    return render_template("index.html", user=user, rank_list=rank_list,categories=categories)
 
 
 # 创建网站图标路由 (浏览器会自动向网站发起/favicon.ico请求，后端只需要实现该路由，并返回图片即可)
@@ -87,6 +87,6 @@ def get_news_list():
     # 把新闻数据包装成json 返回
     data = {
         "news_list": [news.to_basic_dict() for news in pn.items],
-        "total_page": pn.page
+        "total_page": pn.pages
     }
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], data=data)
