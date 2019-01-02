@@ -131,3 +131,43 @@ def news_comment():
 
     # json 返回结果（必须返回该评论的id）
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], data=comment.to_dict())
+
+
+# 新闻点赞
+@news_blu.route("/comment_like", methods=["POST"])
+@user_login_data
+def comment_like():
+    # 判断用户是否登录
+    user = g.user
+    if not user:  # 未登录
+        return jsonify(errno=RET.SESSIONERR, errmsg=error_map[RET.SESSIONERR])
+
+    # 获取参数
+    action = request.json.get("action")
+    comment_id = request.json.get("comment_id")
+
+    # 校验参数
+    if not all([action, comment_id]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    if action not in ["add", "remove"]:
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 获取评论数据
+    try:
+        comment_id = int(comment_id)
+        comment = Comment.query.get(comment_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 根据action 建立、解除关系
+    if action == "add":
+        user.like_comments.append(comment)
+        comment.like_count += 1
+    else:
+        user.like_comments.remove(comment)
+        comment.like_count -= 1
+
+    # json 返回结果
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
