@@ -6,6 +6,7 @@ from flask import session, current_app, g
 from info.utils.models import User
 
 
+
 def func_index_convert(index): # index = 4
 
     index_dict = {1: "first", 2: "second", 3: "third"}
