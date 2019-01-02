@@ -26,6 +26,8 @@ def news_detail(news_id):
     rank_list = [news.to_basic_dict() for news in rank_list]
 
     # user_login_data()
+    # 点击量+1
+    news.clicks+=1
 
     user = g.user.to_dict() if g.user else None
 

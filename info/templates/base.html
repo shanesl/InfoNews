@@ -58,7 +58,7 @@
 
             {% for news in rank_list %}
                 <li><span class="{{ loop.index | index_convert }}">{{ loop.index }}</span><a
-                        href="/news/1">{{ news.title }}</a></li>
+                        href="{{ url_for("news.news_detail",news_id=news.id) }}">{{ news.title }}</a></li>
             {% endfor %}
 
         </ul>
