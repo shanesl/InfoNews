@@ -10,11 +10,8 @@ from redis import Redis
 from config import config_dict
 
 # 定义全局变量，记录数据库连接对象，以便其他文件可以使用
-from info.utils.common import func_index_convert
-
 db = None  # type:SQLAlchemy
 rs = None  # type:Redis
-
 
 # 封装应用的创建过程， 工厂函数：让外界提供物料，在函数内部封装对象的创建过程
 def create_app(config_type):
@@ -49,6 +46,7 @@ def create_app(config_type):
     app.register_blueprint(news_blu)
 
     # 添加过滤器到应用
+    from info.utils.common import func_index_convert
     app.add_template_filter(func_index_convert,"index_convert")
     # 初始化迁移器
     Migrate(app, db)

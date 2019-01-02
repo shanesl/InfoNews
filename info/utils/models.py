@@ -2,11 +2,11 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from info import db
+from info.utils import constants
 
 
 
 # 表基类    为每个表添加共同的字段: 记录的创建时间与更新时间
-from info.utils import constants
 
 
 class BaseModel(object):
