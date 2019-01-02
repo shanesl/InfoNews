@@ -44,6 +44,9 @@ def create_app(config_type):
     from info.modules.passport import passport_blu
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(passport_blu)
+    from info.modules.news import news_blu
+    # 为了导入错误，对于只使用一次的引用 在使用前导入
+    app.register_blueprint(news_blu)
 
     # 添加过滤器到应用
     app.add_template_filter(func_index_convert,"index_convert")
