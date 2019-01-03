@@ -32,3 +32,30 @@ def user_login_data(f):  # f=news_detail
         g.user = user
         return f(*args,**kwargs)
     return wrappers
+
+
+# 上传文件到七牛云
+def file_upload(data):
+    """
+    上传文件到七牛云
+    :param data: 要上传的文件
+    :return: 保存在七牛云的文件名
+    """
+
+    import qiniu
+    access_key = "kJ8wVO7lmFGsdvtI5M7eQDEJ1eT3Vrygb4SmR00E"
+    secret_key = "rGwHyAvnlLK7rU4htRpNYzpuz0OHJKzX2O1LWTNl"
+    bucket_name = "infonews22"  # 空间名称
+
+    q = qiniu.Auth(access_key, secret_key)
+    key = None  # 设置文件名, 如果为None, 就会生成随机名称
+
+    token = q.upload_token(bucket_name)
+
+    ret, info = qiniu.put_data(token, key, data)
+    if ret is not None:
+        return ret.get('key')  # 文件名
+    else:
+        raise BaseException(info) # error message in info
+
+
