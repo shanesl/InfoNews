@@ -36,7 +36,7 @@ def base_info():
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
-@user_blu.route('/pic_info',methods=["GET","POST"])
+@user_blu.route('/pic_info', methods=["GET", "POST"])
 def pic_info():
     user = g.user
     if request.method == "GET":
@@ -62,4 +62,29 @@ def pic_info():
     # 修改头像链接
     user.avatar_url = file_name
     # json 返回， 必须返回头像链接
-    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK],data=user.to_dict())
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], data=user.to_dict())
+
+
+@user_blu.route('/pass_info', methods=["GET", "POST"])
+def pass_info():
+    user = g.user
+    if request.method == "GET":
+        return render_template("news/user_pass_info.html", user=user.to_dict())
+
+    # POST
+    # 获取参数
+    old_password = request.json.get("old_password")
+    new_password = request.json.get("new_password")
+    # 校验参数
+    if not all([old_password, new_password]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 校验就密码
+    if not user.check_password(old_password):
+        return jsonify(errno=RET.PWDERR, errmsg=error_map[RET.PWDERR])
+
+    # 修改新密码
+    user.password = new_password
+
+    # json返回
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])

@@ -14,5 +14,5 @@ from .views import *
 def check_user_login():
     user = g.user
     if not user:
-        # 用户为登录，返回首页
-        return redirect(url_for("home.index"))
+        # 用户为登录，返回首页 这样会导致个人页面嵌套页面显示首页 出错 所以统一返回403
+        return abort(403)
