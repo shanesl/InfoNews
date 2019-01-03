@@ -10,4 +10,4 @@ def user_info():
 @user_blu.route("/base_info")
 def base_info():
 
-    return render_template("news/user_base_info.html")
+    return render_template("news/user_base_info.html",user=g.user.to_dict())

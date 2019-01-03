@@ -14,4 +14,5 @@ from .views import *
 def check_user_login():
     user = g.user
     if not user:
-        return abort(403)
+        # 用户为登录，返回首页
+        return redirect(url_for("home.index"))
