@@ -59,7 +59,7 @@ def news_detail(news_id):
     user = user.to_dict() if user else None
     # 将数据传入模板渲染
     return render_template("detail.html", news=news.to_dict(), rank_list=rank_list, user=user,
-                           is_collected=is_collected, comments=[comment.to_dict() for comment in comments] )
+                           is_collected=is_collected, comments=comment_list )
 
 
 # 新闻收藏
