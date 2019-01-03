@@ -1,6 +1,8 @@
-from flask import render_template, g, request, jsonify, current_app
+from flask import render_template, g, request, jsonify, current_app, abort
 from info.modules.user import user_blu
 from info.utils.common import file_upload
+from info.utils.constants import USER_COLLECTION_MAX_NEWS
+from info.utils.models import UserCollection
 from info.utils.response_code import error_map, RET
 
 
@@ -69,7 +71,7 @@ def pic_info():
 def pass_info():
     user = g.user
     if request.method == "GET":
-        return render_template("news/user_pass_info.html", user=user.to_dict())
+        return render_template("news/user_pass_info.html")
 
     # POST
     # 获取参数
@@ -88,3 +90,31 @@ def pass_info():
 
     # json返回
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+
+@user_blu.route('/collection')
+def collection():
+    user = g.user
+    # 获取参数
+    p = request.args.get("p", 1)
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(403)
+
+    # 查询当前用户收藏的新闻 分页查询 收藏时间倒序
+    try:
+        pn = user.collection_news.order_by(UserCollection.create_time.desc()).paginate(p, USER_COLLECTION_MAX_NEWS)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(500)
+
+    data = {
+        "news_list": [news.to_dict() for news in pn.items],
+        "cur_page": pn.page,
+        "total_page": pn.pages
+    }
+
+    return render_template("news/user_collection.html", data=data)
