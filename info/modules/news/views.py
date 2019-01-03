@@ -43,11 +43,23 @@ def news_detail(news_id):
     except BaseException as e:
         current_app.logger.error(e)
 
-    user = user.to_dict() if user else None
+    comment_list =[]
+    for comment in comments:
+        comment_dict = comment.to_dict()
 
+        # 查询评论是否被当前用户点过赞
+        is_like = False
+        if user:
+            if comment in user.like_comments:
+                is_like = True
+
+        comment_dict["is_like"]=is_like
+        comment_list.append(comment_dict)
+
+    user = user.to_dict() if user else None
     # 将数据传入模板渲染
     return render_template("detail.html", news=news.to_dict(), rank_list=rank_list, user=user,
-                           is_collected=is_collected, comments=[comment.to_dict() for comment in comments])
+                           is_collected=is_collected, comments=[comment.to_dict() for comment in comments] )
 
 
 # 新闻收藏
