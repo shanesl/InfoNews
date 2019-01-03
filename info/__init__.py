@@ -44,6 +44,8 @@ def create_app(config_type):
     from info.modules.news import news_blu
     # 为了导入错误，对于只使用一次的引用 在使用前导入
     app.register_blueprint(news_blu)
+    from info.modules.user import user_blu
+    app.register_blueprint(user_blu)
 
     # 添加过滤器到应用
     from info.utils.common import func_index_convert

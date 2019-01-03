@@ -36,7 +36,7 @@ def index():
 
     user = user.to_dict() if user else None
 
-    return render_template("index.html", user=user, rank_list=rank_list,categories=categories)
+    return render_template("news/index.html", user=user, rank_list=rank_list,categories=categories)
 
 
 # 创建网站图标路由 (浏览器会自动向网站发起/favicon.ico请求，后端只需要实现该路由，并返回图片即可)

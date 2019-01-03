@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "news/base.html" %}
 
 {% block title_block %}
     <title>文章详情页</title>
@@ -6,7 +6,7 @@
 
 
 {% block script_block %}
-    <script type="text/javascript" src="../static/news/js/detail.js"></script>
+    <script type="text/javascript" src="../../static/news/js/detail.js"></script>
 {% endblock %}
 
 
@@ -32,7 +32,7 @@
             <form action="" class="comment_form" data-newsid="{{ news.id }}">
                 <div class="person_pic">
                     <img {% if user.avatar_url %} src="{{ user.avatar_url }}"
-                                                  {% else %}src="../static/news/images/cat.jpg"{% endif %} alt="用户图标">
+                                                  {% else %}src="../../static/news/images/cat.jpg"{% endif %} alt="用户图标">
                 </div>
                 <textarea placeholder="请发表您的评论" class="comment_input"></textarea>
                 <input type="submit" name="" value="评 论" class="comment_sub">
@@ -55,7 +55,7 @@
                 <div class="comment_list">
                     <div class="person_pic fl">
                         <img {% if comment.user.avatar_url %}src="{{ comment.user.avatar_url }}"
-                             {% else %}src="../static/news/images/person01.png"{% endif %} alt="用户图标">
+                             {% else %}src="../../static/news/images/person01.png"{% endif %} alt="用户图标">
                     </div>
                     <div class="user_name fl">{{ comment.user.nick_name }}</div>
                     <div class="comment_text fl">
@@ -135,7 +135,7 @@
 
 {% block author_block %}
     <div class="author_card">
-        <a href="#" class="author_pic"><img src="../static/news/images/user_pic.png" alt="author_pic"></a>
+        <a href="#" class="author_pic"><img src="../../static/news/images/user_pic.png" alt="author_pic"></a>
         <a href="#" class="author_name">张大山</a>
         <div class="author_resume">张大山的简介,张大山</div>
         <div class="writings"><span>总篇数</span><b>23</b></div>
