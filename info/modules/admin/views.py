@@ -69,3 +69,10 @@ def logout():
 
     # 重定向到后台登录
     return redirect(url_for("admin.login"))
+
+
+@admin_blu.route("user_count")
+def user_count():
+
+    return render_template("admin/user_count.html")
+
