@@ -1,4 +1,3 @@
-
 import random
 import re
 from datetime import datetime
@@ -48,7 +47,7 @@ def get_sms_code():
     img_code = request.json.get("img_code")
     mobile = request.json.get("mobile")
     # 校验参数
-    print(img_code_id,img_code,mobile)
+    print(img_code_id, img_code, mobile)
     if not all([img_code_id, img_code, mobile]):
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
@@ -59,8 +58,8 @@ def get_sms_code():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
 
-    print("实际验证码：",real_img_code)
-    print("获取到的验证码",img_code)
+    print("实际验证码：", real_img_code)
+    print("获取到的验证码", img_code)
     # 校验图片验证码（文字）
     if real_img_code != img_code.upper():
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
@@ -143,14 +142,14 @@ def register():
         return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
 
     # 使用session 记录用户登录状态，记录主键就可以查询出其他的数据
-    session["user_id"]=user.id
+    session["user_id"] = user.id
 
     # json 返回结果
-    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
 # 用户登录
-@passport_blu.route("/login",methods=["POST"])
+@passport_blu.route("/login", methods=["POST"])
 def login():
     # 获取参数
     mobile = request.json.get("mobile")
@@ -176,6 +175,7 @@ def login():
 
     # 使用session记录用户登录状态 记录主键就可以查询出其他的数据
     session["user_id"] = user.id
+    session["is_admin"] = user.is_admin
 
     # 记录最后登录时间  使用sqlalchemy自动提交机制
     user.last_login = datetime.now()
@@ -187,6 +187,8 @@ def login():
 # 用户退出
 @passport_blu.route("/logout")
 def logout():
-    session.pop("user_id",None)
 
-    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])
+    session.pop("user_id", None)
+    session.pop("is_admin", None)
+
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])

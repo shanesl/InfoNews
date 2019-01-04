@@ -7,8 +7,9 @@
 	<link rel="stylesheet" type="text/css" href="../../static/admin/css/main.css">
 </head>
 <body>
+
 	<div class="login_logo">
-		<img src="../../static/admin/images/logo.png" alt="">
+        <a href="{{ url_for("home.index") }}" class="logo fl"><img src="../../static/admin/images/logo.png" alt="logo"></a>
 	</div>	
 	<form method="post" class="login_form">
 		<h1 class="login_title">用户登录</h1>
