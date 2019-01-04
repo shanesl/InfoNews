@@ -3,7 +3,7 @@ from flask import render_template, g, request, jsonify, current_app, abort
 from info import db
 from info.modules.user import user_blu
 from info.utils.common import file_upload
-from info.utils.constants import USER_COLLECTION_MAX_NEWS, QINIU_DOMIN_PREFIX
+from info.utils.constants import USER_COLLECTION_MAX_NEWS, QINIU_DOMIN_PREFIX, USER_RELEASE_MAX_NEWS
 from info.utils.models import UserCollection, Category, News
 from info.utils.response_code import error_map, RET
 
@@ -122,7 +122,7 @@ def collection():
     return render_template("news/user_collection.html", data=data)
 
 
-@user_blu.route('/news_release',methods=["GET","POST"])
+@user_blu.route('/news_release', methods=["GET", "POST"])
 def news_release():
     user = g.user
 
@@ -172,3 +172,32 @@ def news_release():
     db.session.add(news)
     # json返回
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+
+@user_blu.route('/news_list')
+def news_list():
+    user = g.user
+    # 获取参数
+    p = request.args.get("p", 1)
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 查询当前用户发布的新闻发布时间倒序，分页查询
+    try:
+        pn = user.news_list.order_by(News.create_time.desc()).paginate(p, USER_RELEASE_MAX_NEWS)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    data = {
+        "news_list": [news.to_review_dict() for news in pn.items],
+        "total_page": pn.pages,
+        "cur_page": pn.page
+
+    }       # 注意要传递的数据是否正确
+
+    return render_template("news/user_news_list.html", data=data)
