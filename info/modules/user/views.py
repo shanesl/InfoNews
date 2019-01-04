@@ -198,6 +198,8 @@ def news_list():
         "total_page": pn.pages,
         "cur_page": pn.page
 
-    }       # 注意要传递的数据是否正确
+    }  # 注意要传递的数据是否正确
 
     return render_template("news/user_news_list.html", data=data)
+
+

@@ -2,7 +2,7 @@ from flask import current_app, abort, render_template, g, jsonify, request
 from info import db
 from info.modules.news import news_blu
 from info.utils.common import user_login_data
-from info.utils.models import News, Comment
+from info.utils.models import News, Comment, User
 from info.utils.response_code import RET, error_map
 
 
@@ -182,4 +182,40 @@ def comment_like():
         comment.like_count -= 1
 
     # json 返回结果
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+
+# 关注作者
+@news_blu.route('/followed_user', methods=['POST'])
+@user_login_data
+def followed_user():
+    user = g.user
+    if not user:  # 未登录
+        return jsonify(errno=RET.SESSIONERR, errmsg=error_map[RET.SESSIONERR])
+
+    # 获取参数
+    action = request.json.get("action")
+    author_id = request.json.get("user_id")
+    # 校验参数
+    if not all([action, author_id]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    if action not in ["follow", "unfollow"]:
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 获取作者数据
+    try:
+        author_id = int(author_id)
+        author = User.query.get(author_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 根据action建立/解除关注关系
+    if action == "follow":  # 关注
+        user.followed.append(author)
+    else:  # 取消关注
+        user.followed.remove(author)
+
+    # json返回结果
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
