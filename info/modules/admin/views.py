@@ -1,4 +1,8 @@
 # 个人中心
+
+import time
+from datetime import datetime
+
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g
 
 from info.modules.admin import admin_blu
@@ -73,6 +77,43 @@ def logout():
 
 @admin_blu.route("user_count")
 def user_count():
+    # 用户总人数
+    try:
+        total_count = User.query.filter(User.is_admin == False).count()
+    except BaseException as e:
+        current_app.logger.error(e)
+        total_count = 0
 
-    return render_template("admin/user_count.html")
+    # 月新增人数 注册时间 >= 本月1号0点
+    # 获取当前时间的年和月
+    t = time.localtime()
 
+    # 构建日期字符串  2019-01-04
+    mon_date_str = "%d-%02d-01" % (t.tm_year, t.tm_mon)
+
+    # 转换为日期对象
+    mon_date = datetime.strptime(mon_date_str, "%Y-%m-%d")
+
+    try:
+        mon_count = User.query.filter(User.is_admin == False, User.create_time >= mon_date).count()
+    except BaseException as e:
+        current_app.logger.error(e)
+        mon_count = 0
+
+    # 日新增人数
+    # 构建日期字符串  2019-01-04
+    day_date_str = "%d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)
+    day_date = datetime.strptime(day_date_str,"%Y-%m-%d")
+    try:
+        day_count = User.query.filter(User.is_admin == False,User.create_time>=day_date).count()
+    except BaseException as e:
+        current_app.logger.error(e)
+        day_count = 0
+
+    data = {
+        "total_count": total_count,
+        "mon_count": mon_count,
+        "day_count":day_count
+    }
+
+    return render_template("admin/user_count.html", data=data)
