@@ -40,7 +40,7 @@ def create_superuser(username, password):
         app.logger.error("添加管理员失败：%s" % e)
         return
 
-    app.logger.info("添加管理员失败")
+    app.logger.info("添加管理员成功")
 
 if __name__ == "__main__":
     mgr.run()
