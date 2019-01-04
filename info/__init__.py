@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask
+from flask import Flask, g, render_template
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
@@ -46,10 +46,9 @@ def create_app(config_type):
     app.register_blueprint(news_blu)
     from info.modules.user import user_blu
     app.register_blueprint(user_blu)
+    from info.modules.admin import admin_blu
+    app.register_blueprint(admin_blu)
 
-    # 添加过滤器到应用
-    from info.utils.common import func_index_convert
-    app.add_template_filter(func_index_convert,"index_convert")
     # 初始化迁移器
     Migrate(app, db)
 
@@ -59,6 +58,21 @@ def create_app(config_type):
 
     # 配置日志
     setup_log(config_class.LOGLEVEL)
+
+    # 添加过滤器到应用
+    from info.utils.common import func_index_convert
+    app.add_template_filter(func_index_convert, "index_convert")
+
+    # 捕获404 错误
+    from info.utils.common import user_login_data
+
+    @app.errorhandler(404)
+    @user_login_data
+    def error_404(e):
+
+        user = g.user.to_dict() if g.user else None
+        return render_template("news/404.html", user=user)
+
     return app
 
 
