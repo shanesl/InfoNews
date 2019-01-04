@@ -3,16 +3,19 @@ from flask import render_template, g, request, jsonify, current_app, abort
 from info import db
 from info.modules.user import user_blu
 from info.utils.common import file_upload
-from info.utils.constants import USER_COLLECTION_MAX_NEWS, QINIU_DOMIN_PREFIX, USER_RELEASE_MAX_NEWS
-from info.utils.models import UserCollection, Category, News
+from info.utils.constants import USER_COLLECTION_MAX_NEWS, QINIU_DOMIN_PREFIX, USER_RELEASE_MAX_NEWS, \
+    USER_FOLLOWED_MAX_COUNT
+from info.utils.models import UserCollection, Category, News, User
 from info.utils.response_code import error_map, RET
 
 
+# 个人中心
 @user_blu.route("/user_info")
 def user_info():
     return render_template("news/user.html", user=g.user.to_dict())
 
 
+# 基本资料页
 @user_blu.route("/base_info", methods=['GET', 'POST'])
 def base_info():
     user = g.user
@@ -40,6 +43,7 @@ def base_info():
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
+# 头像设置
 @user_blu.route('/pic_info', methods=["GET", "POST"])
 def pic_info():
     user = g.user
@@ -69,6 +73,7 @@ def pic_info():
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], data=user.to_dict())
 
 
+# 修改密码
 @user_blu.route('/pass_info', methods=["GET", "POST"])
 def pass_info():
     user = g.user
@@ -94,6 +99,7 @@ def pass_info():
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
+# 我的收藏
 @user_blu.route('/collection')
 def collection():
     user = g.user
@@ -122,6 +128,7 @@ def collection():
     return render_template("news/user_collection.html", data=data)
 
 
+# 新闻发布
 @user_blu.route('/news_release', methods=["GET", "POST"])
 def news_release():
     user = g.user
@@ -174,6 +181,7 @@ def news_release():
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
+# 新闻列表
 @user_blu.route('/news_list')
 def news_list():
     user = g.user
@@ -203,9 +211,30 @@ def news_list():
     return render_template("news/user_news_list.html", data=data)
 
 
+# 我的关注
 @user_blu.route('/user_follow')
 def user_follow():
+    user = g.user
+    # 获取参数
+    p = request.args.get("p", 1)
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(403)
 
+    # 查询当前用户关注的作者 分页查询
+    try:
+        pn = user.followed.paginate(p, USER_FOLLOWED_MAX_COUNT)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(500)
 
+    data = {
+        "author_list": [user.to_dict() for user in pn.items],
+        "cur_page": pn.page,
+        "total_page": pn.pages
+    }
 
-    return render_template("news/user_follow.html")
+    return render_template("news/user_follow.html", data=data)
