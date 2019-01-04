@@ -5,13 +5,11 @@ from info import db
 from info.utils import constants
 
 
-
 # 表基类    为每个表添加共同的字段: 记录的创建时间与更新时间
-
-
 class BaseModel(object):
     create_time = db.Column(db.DateTime, default=datetime.now)  # 记录的创建时间  default参数用于设置字段的默认值, 可以为基本类型/函数引用
-    update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)  # 记录的更新时间   当记录发生数据更新时, 字段会修改为onupdate参数的值
+    update_time = db.Column(db.DateTime, default=datetime.now,
+                            onupdate=datetime.now)  # 记录的更新时间   当记录发生数据更新时, 字段会修改为onupdate参数的值
 
 
 # 用户表
@@ -50,7 +48,6 @@ class User(BaseModel, db.Model):
     # 当前用户所发布的新闻
     news_list = db.relationship('News', backref='user', lazy='dynamic')
 
-
     # 计算型属性：对属性赋值/取值时，会调用对应方法，可以在方法中封装一些处理   常量属性装饰器的应用
     @property
     def password(self):
@@ -59,7 +56,7 @@ class User(BaseModel, db.Model):
     @password.setter
     def password(self, value):
         # 封装加密过程
-        self.password_hash = generate_password_hash(value)    # 设置密码 存储时，会自动加密
+        self.password_hash = generate_password_hash(value)  # 设置密码 存储时，会自动加密
 
     def check_password(self, password):
         """
@@ -68,7 +65,6 @@ class User(BaseModel, db.Model):
         :return: 校验成功返回 True
         """
         return check_password_hash(self.password_hash, password)
-
 
     def to_dict(self):  # 将模型中的数据转存到了字典中, 并且封装了数据的判断和格式转换, 方便数据的使用
         resp_dict = {
@@ -218,4 +214,3 @@ class CommentLike(BaseModel, db.Model):
 
     comment_id = db.Column("comment_id", db.Integer, db.ForeignKey("info_comment.id"), primary_key=True)  # 评论编号
     user_id = db.Column("user_id", db.Integer, db.ForeignKey("info_user.id"), primary_key=True)  # 用户编号
-

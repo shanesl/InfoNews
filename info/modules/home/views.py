@@ -73,8 +73,8 @@ def get_news_list():
     #         pn = News.query.order_by(News.create_time.desc()).paginate(cur_page, per_count)
     #     else:
     #         pn = News.query.filter_by(category_id=cid).order_by(News.create_time.desc()).paginate(cur_page, per_count)
-
-    filter_list = []
+    # 新闻只能显示 已通过审核的
+    filter_list = [News.status == 0]
     if cid != 1: # 不是 最新
         filter_list.append(News.category_id == cid)
     try:    #
