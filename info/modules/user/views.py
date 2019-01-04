@@ -203,3 +203,9 @@ def news_list():
     return render_template("news/user_news_list.html", data=data)
 
 
+@user_blu.route('/user_follow')
+def user_follow():
+
+
+
+    return render_template("news/user_follow.html")

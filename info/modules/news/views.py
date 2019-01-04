@@ -56,10 +56,15 @@ def news_detail(news_id):
         comment_dict["is_like"]=is_like
         comment_list.append(comment_dict)
 
+    is_followed = False
+    if news.user and user:
+        if news.user in user.followed:
+            is_followed = True
+
     user = user.to_dict() if user else None
     # 将数据传入模板渲染
     return render_template("news/detail.html", news=news.to_dict(), rank_list=rank_list, user=user,
-                           is_collected=is_collected, comments=comment_list )
+                           is_collected=is_collected, comments=comment_list, is_followed=is_followed)
 
 
 # 新闻收藏
