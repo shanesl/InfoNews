@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g
 
 from info.modules.admin import admin_blu
-from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT
-from info.utils.models import User
+from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT, ADMIN_NEWS_PAGE_MAX_COUNT
+from info.utils.models import User, News
 from info.utils.response_code import RET, error_map
 
 
@@ -149,6 +149,7 @@ def user_count():
     return render_template("admin/user_count.html", data=data)
 
 
+# 后台用户列表
 @admin_blu.route('/user_list')
 def user_list():
     p = request.args.get("p", 1)   # 页数
@@ -174,3 +175,33 @@ def user_list():
     }  # 注意要传递的数据是否正确
 
     return render_template("admin/user_list.html", data=data)
+
+
+# 后台新闻审核
+@admin_blu.route('/news_review')
+def news_review():
+
+    p = request.args.get("p", 1)  # 页数
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 查询当前用户发布的新闻发布时间倒序，分页查询
+    try:
+        pn = News.query.order_by(News.create_time.desc()).paginate(p, ADMIN_NEWS_PAGE_MAX_COUNT)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    data = {
+        "news_list": [news.to_review_dict() for news in pn.items],
+        "total_page": pn.pages,
+        "cur_page": pn.page
+
+    }  # 注意要传递的数据是否正确
+
+    return render_template("admin/news_review.html", data=data)
+
