@@ -3,11 +3,12 @@ import random
 
 from flask_migrate import MigrateCommand
 from flask_script import Manager
+
+
 from info import create_app
 
 # 创建web 应用
 app = create_app("dev")
-
 # 创建管理器
 mgr = Manager(app)
 
@@ -66,11 +67,11 @@ def add_test_users():
             user.nick_name = "%011d" % num
             user.mobile = "%011d" % num
             user.password = "123456"
-            user.create_time = now - datetime.timedelta(seconds=random.randint(0,2678400))
+            user.create_time = now - datetime.timedelta(seconds=random.randint(0, 2678400))
             users.append(user)
 
         except Exception as e:
-            print("=~=",e)
+            print("=~=", e)
     db.session.add_all(users)
     try:
         db.session.commit()
@@ -79,6 +80,7 @@ def add_test_users():
         db.session.rollback()
 
     print("ok")
+
 
 if __name__ == "__main__":
     mgr.run()

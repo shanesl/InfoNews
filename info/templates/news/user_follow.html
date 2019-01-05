@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    {# 生成随机令牌, 保存到session中 #}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>用户中心</title>
     <link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
     <link rel="stylesheet" type="text/css" href="../../static/news/css/jquery.pagination.css">
@@ -33,6 +35,7 @@
         </li>
     {% endfor %}
 </ul>
-    <div id="pagination" class="page" cur_page="{{ data.cur_age }}" total_page="{{ data.total_page }}" source="{{ url_for("user.user_follow") }}"></div>
+<div id="pagination" class="page" cur_page="{{ data.cur_age }}" total_page="{{ data.total_page }}"
+     source="{{ url_for("user.user_follow") }}"></div>
 </body>
 </html>

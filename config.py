@@ -24,11 +24,12 @@ class Config:
 class DevelopmentConfig(Config):  # 开发环境配置信息
     DEBUG = True  # 设置调试模式
     LOGLEVEL = logging.DEBUG
-
+    WTF_CSRF_ENABLED = False # 关闭 CSRF 校验
 
 class ProductionConfig(Config):  # 生产环境配置信息
     DEBUG = False
     LOGLEVEL = logging.ERROR   # 设置日志等级
+    WTF_CSRF_ENABLED = True # 开启 CSRF 校验
 
 config_dict = {
     "dev": DevelopmentConfig,
