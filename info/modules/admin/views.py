@@ -1,7 +1,7 @@
 # 个人中心
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g
 
@@ -75,7 +75,7 @@ def logout():
     return redirect(url_for("admin.login"))
 
 
-@admin_blu.route("user_count")
+@admin_blu.route("/user_count")
 def user_count():
     # 用户总人数
     try:
@@ -110,10 +110,38 @@ def user_count():
         current_app.logger.error(e)
         day_count = 0
 
+    # 某日的注册人数  注册时间 >= 当日0点, < 次日0点
+    active_count = []
+    active_time = []
+
+    for i in range(0, 30):
+        begin_date = day_date - timedelta(days=i)  # 当日0点
+        end_date = begin_date + timedelta(days=1)  # 次日0点
+
+        try:
+            one_day_count = User.query.filter(User.is_admin == False, User.create_time >= begin_date,
+                                              User.create_time < end_date).count()
+
+            active_count.append(one_day_count)  # 存放日期对应的注册人数
+
+            # 将日期对象转为日期字符串
+            one_day_str = begin_date.strftime("%Y-%m-%d")
+            active_time.append(one_day_str)  # 存放日期字符串
+
+        except BaseException as e:
+            current_app.logger.error(e)
+            one_day_count = 0
+
+    # 日期和注册量倒序
+    active_time.reverse()
+    active_count.reverse()
+
     data = {
         "total_count": total_count,
         "mon_count": mon_count,
-        "day_count":day_count
+        "day_count": day_count,
+        "active_count": active_count,
+        "active_time": active_time
     }
 
     return render_template("admin/user_count.html", data=data)
