@@ -211,15 +211,51 @@ def news_review():
 
 
 # 后台新闻审核详情页
-@admin_blu.route('/news_review_detail/<int:news_id>',methods=["GET","POST"])
-def news_review_detail(news_id):
+@admin_blu.route('/news_review_detail')
+def news_review_detail():
 
-    # 查询新闻信息
+    news_id = request.args.get("news_id")
     try:
+        news_id = int(news_id)
+        # 查询新闻信息
         news = News.query.get(news_id)
     except BaseException as e:
         current_app.logger.error(e)
         return abort(403)
 
-    if request.method == "GET":
-        return render_template("admin/news_review_detail.html",news=news.to_dict())
+    return render_template("admin/news_review_detail.html",news=news.to_dict())
+
+# 后台新闻审核提交
+@admin_blu.route('/news_review_action',methods=["POST"])
+def news_review_action():
+
+    news_id = request.json.get("news_id")
+    action = request.json.get("action")            
+    reason = request.json.get("reason")
+
+    if not all([news_id,action]):
+        return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+
+    if not action in ["accept", "reject"]:
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    try:
+        news_id = int(news_id)
+        # 查询新闻信息
+        news = News.query.get(news_id)
+    except BaseException as e:
+         current_app.logger.error(e)
+         return abort(403)
+
+    if action == "accept":
+        news.status = 0
+        return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+    # reject
+    if not reason:
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+    else:
+        news.reason = reason
+        news.status = -1
+
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK],news_id=news_id)
