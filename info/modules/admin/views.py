@@ -3,7 +3,7 @@
 import time
 from datetime import datetime, timedelta
 
-from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g
+from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g, abort
 
 from info.modules.admin import admin_blu
 from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT, ADMIN_NEWS_PAGE_MAX_COUNT
@@ -205,3 +205,17 @@ def news_review():
 
     return render_template("admin/news_review.html", data=data)
 
+
+# 后台新闻审核详情页
+@admin_blu.route('/news_review_detail/<int:news_id>',methods=["GET","POST"])
+def news_review_detail(news_id):
+
+    # 查询新闻信息
+    try:
+        news = News.query.get(news_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(403)
+
+    if request.method == "GET":
+        return render_template("admin/news_review_detail.html",news=news.to_dict())
