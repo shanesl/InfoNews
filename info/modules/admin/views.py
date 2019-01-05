@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g, abort
 
 from info.modules.admin import admin_blu
+from info.utils.common import file_upload
 from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT, ADMIN_NEWS_PAGE_MAX_COUNT
-from info.utils.models import User, News
+from info.utils.models import User, News, Category
 from info.utils.response_code import RET, error_map
 
 
@@ -221,7 +222,7 @@ def news_review_detail():
         news = News.query.get(news_id)
     except BaseException as e:
         current_app.logger.error(e)
-        return abort(403)
+        return abort(500)
 
     return render_template("admin/news_review_detail.html",news=news.to_dict())
 
@@ -292,3 +293,33 @@ def news_edit():
     }  # 注意要传递的数据是否正确
 
     return render_template("admin/news_edit.html", data=data)
+
+
+# 后台新闻版式详情页
+@admin_blu.route('/news_edit_detail/<int:news_id>')
+def news_edit_detail(news_id):
+    try:
+        news = News.query.get(news_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(500)
+
+    # 查询所有分类
+    try:
+        categories = Category.query.filter(Category.id != 1).all()
+    except BaseException as e:
+        current_app.logger.error(e)
+        return abort(500)
+
+    category_list = []
+    for category in categories:
+        category_dict =category.to_dict()
+        is_select = False
+        if category.id == news.category_id:
+            is_select = True
+
+        category_dict["is_select"] = is_select
+        category_list.append(category_dict)
+
+    return render_template("admin/news_edit_detail.html", news=news.to_dict(),category_list=category_list)
+

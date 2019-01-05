@@ -36,7 +36,7 @@
                 <td class="tleft">{{ news.title }}</td>
                 <td>{{ news.create_time }}</td>
                 <td>
-                    <a href="news_edit_detail.html" class="edit">编辑</a>
+                    <a href="{{ url_for("admin.news_edit_detail",news_id=news.id) }}" class="edit">编辑</a>
                 </td>
             </tr>
         {% endfor %}
@@ -44,7 +44,7 @@
 </div>
 
 <div class="box">
-    <div id="pagination" class="page" cur_page="1" total_page="1" source="/admin/news_edit"></div>
+    <div id="pagination" class="page" cur_page="{{ data.cur_page }}" total_page="{{ data.total_page }}" source="{{ url_for("admin.news_edit") }}"></div>
 </div>
 </body>
 </html>
