@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g
 
 from info.modules.admin import admin_blu
+from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT
 from info.utils.models import User
 from info.utils.response_code import RET, error_map
 
@@ -75,6 +76,7 @@ def logout():
     return redirect(url_for("admin.login"))
 
 
+# 后台用户统计
 @admin_blu.route("/user_count")
 def user_count():
     # 用户总人数
@@ -145,3 +147,30 @@ def user_count():
     }
 
     return render_template("admin/user_count.html", data=data)
+
+
+@admin_blu.route('/user_list')
+def user_list():
+    p = request.args.get("p", 1)   # 页数
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 查询当前用户发布的新闻发布时间倒序，分页查询
+    try:
+        pn = User.query.order_by(User.last_login.desc()).paginate(p, ADMIN_USER_PAGE_MAX_COUNT)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    data = {
+        "user_list": [user.to_admin_dict() for user in pn.items],
+        "total_page": pn.pages,
+        "cur_page": pn.page
+
+    }  # 注意要传递的数据是否正确
+
+    return render_template("admin/user_list.html", data=data)
