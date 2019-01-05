@@ -29,7 +29,7 @@
                 <label>新闻分类：</label>
                 <select class="sel_opt" name="category_id">
                 {% for category in category_list %}
-                    <option value="{{ category.name }}"{% if category.is_select %}selected{% endif %}>{{ category.name }}</option>
+                    <option value="{{ category.id }}"{% if category.is_select %}selected{% endif %}>{{ category.name }}</option>
                 {% endfor %}
                 </select>
             </div>

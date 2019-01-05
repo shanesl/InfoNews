@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 
 from flask import render_template, request, current_app, jsonify, session, redirect, url_for, g, abort
 
+from info import db
 from info.modules.admin import admin_blu
 from info.utils.common import file_upload
-from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT, ADMIN_NEWS_PAGE_MAX_COUNT
+from info.utils.constants import ADMIN_USER_PAGE_MAX_COUNT, ADMIN_NEWS_PAGE_MAX_COUNT, QINIU_DOMIN_PREFIX
 from info.utils.models import User, News, Category
 from info.utils.response_code import RET, error_map
 
@@ -106,9 +107,9 @@ def user_count():
     # 日新增人数
     # 构建日期字符串  2019-01-04
     day_date_str = "%d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)
-    day_date = datetime.strptime(day_date_str,"%Y-%m-%d")
+    day_date = datetime.strptime(day_date_str, "%Y-%m-%d")
     try:
-        day_count = User.query.filter(User.is_admin == False,User.create_time>=day_date).count()
+        day_count = User.query.filter(User.is_admin == False, User.create_time >= day_date).count()
     except BaseException as e:
         current_app.logger.error(e)
         day_count = 0
@@ -153,7 +154,7 @@ def user_count():
 # 后台用户列表
 @admin_blu.route('/user_list')
 def user_list():
-    p = request.args.get("p", 1)   # 页数
+    p = request.args.get("p", 1)  # 页数
     # 校验参数
     try:
         p = int(p)
@@ -181,9 +182,8 @@ def user_list():
 # 后台新闻审核
 @admin_blu.route('/news_review')
 def news_review():
-
     p = request.args.get("p", 1)  # 页数
-    keyword = request.args.get("keyword")   # 关键字搜索
+    keyword = request.args.get("keyword")  # 关键字搜索
     # 校验参数
     try:
         p = int(p)
@@ -191,7 +191,7 @@ def news_review():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
-    filter_list =[]
+    filter_list = []
     if keyword:
         filter_list.append(News.title.contains(keyword))
     # 查询当前用户发布的新闻发布时间倒序，分页查询
@@ -214,7 +214,6 @@ def news_review():
 # 后台新闻审核详情页
 @admin_blu.route('/news_review_detail')
 def news_review_detail():
-
     news_id = request.args.get("news_id")
     try:
         news_id = int(news_id)
@@ -224,18 +223,18 @@ def news_review_detail():
         current_app.logger.error(e)
         return abort(500)
 
-    return render_template("admin/news_review_detail.html",news=news.to_dict())
+    return render_template("admin/news_review_detail.html", news=news.to_dict())
+
 
 # 后台新闻审核提交
-@admin_blu.route('/news_review_action',methods=["POST"])
+@admin_blu.route('/news_review_action', methods=["POST"])
 def news_review_action():
-
     news_id = request.json.get("news_id")
     action = request.json.get("action")
     reason = request.json.get("reason")
 
-    if not all([news_id,action]):
-        return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+    if not all([news_id, action]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
     if not action in ["accept", "reject"]:
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
@@ -245,8 +244,8 @@ def news_review_action():
         # 查询新闻信息
         news = News.query.get(news_id)
     except BaseException as e:
-         current_app.logger.error(e)
-         return abort(403)
+        current_app.logger.error(e)
+        return abort(403)
 
     if action == "accept":
         news.status = 0
@@ -259,15 +258,14 @@ def news_review_action():
         news.reason = reason
         news.status = -1
 
-    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK],news_id=news_id)
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK], news_id=news_id)
 
 
 # 后台新闻板式编辑
 @admin_blu.route('/news_edit')
 def news_edit():
-
     p = request.args.get("p", 1)  # 页数
-    keyword = request.args.get("keyword")   # 关键字搜索
+    keyword = request.args.get("keyword")  # 关键字搜索
     # 校验参数
     try:
         p = int(p)
@@ -275,7 +273,7 @@ def news_edit():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
-    filter_list =[]
+    filter_list = []
     if keyword:
         filter_list.append(News.title.contains(keyword))
     # 查询当前用户发布的新闻发布时间倒序，分页查询
@@ -313,7 +311,7 @@ def news_edit_detail(news_id):
 
     category_list = []
     for category in categories:
-        category_dict =category.to_dict()
+        category_dict = category.to_dict()
         is_select = False
         if category.id == news.category_id:
             is_select = True
@@ -321,5 +319,82 @@ def news_edit_detail(news_id):
         category_dict["is_select"] = is_select
         category_list.append(category_dict)
 
-    return render_template("admin/news_edit_detail.html", news=news.to_dict(),category_list=category_list)
+    return render_template("admin/news_edit_detail.html", news=news.to_dict(), category_list=category_list)
+
+
+@admin_blu.route('/news_edit_detail', methods=["POST"])
+def news_edit_detail_post():
+    # POST
+    # 获取参数
+    news_id = request.form.get("news_id")
+    title = request.form.get("title")
+    category_id = request.form.get("category_id")
+    digest = request.form.get("digest")
+    content = request.form.get("content")
+    index_image = request.files.get("index_image")
+
+    # 校验参数
+    if not all([news_id, title, category_id, digest, content]):
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    try:
+        news_id = int(news_id)
+        category_id = int(category_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 查找新闻
+    try:
+        news = News.query.get(news_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    # 修改新闻数据
+    news.title = title
+    news.category_id = category_id
+    news.digest = digest
+    news.content = content
+
+    if index_image:
+        try:
+            # 读取图片内容
+            img_bytes = index_image.read()
+            file_name = file_upload(img_bytes)
+            news.index_image_url = QINIU_DOMIN_PREFIX + file_name
+        except BaseException as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.THIRDERR, errmsg=error_map[RET.THIRDERR])
+
+    return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
+
+
+@admin_blu.route('/news_type',methods=["GET","POST"])
+def news_type():
+    if request.method == "GET":
+        try:
+            categories = Category.query.filter(Category.id != 1).all()
+        except BaseException as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR,errmsg=error_map[RET.DBERR])
+
+        return render_template("admin/news_type.html",categories=categories)
+
+    # POST
+    id = request.json.get("id")
+    name = request.json.get("name")
+
+    if not name:
+        return jsonify(errno=RET.PARAMERR,errmsg=error_map[RET.PARAMERR])
+
+    if id:
+        category = Category.query.get(id)
+        category.name = name
+    else:
+        # 新增 分类
+        news_category = Category(name=name)
+        db.session.add(news_category)
+
+    return jsonify(errno=RET.OK,errmsg=error_map[RET.OK])
 
