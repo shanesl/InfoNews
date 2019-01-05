@@ -230,7 +230,7 @@ def news_review_detail():
 def news_review_action():
 
     news_id = request.json.get("news_id")
-    action = request.json.get("action")            
+    action = request.json.get("action")
     reason = request.json.get("reason")
 
     if not all([news_id,action]):
@@ -259,3 +259,36 @@ def news_review_action():
         news.status = -1
 
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK],news_id=news_id)
+
+
+# 后台新闻板式编辑
+@admin_blu.route('/news_edit')
+def news_edit():
+
+    p = request.args.get("p", 1)  # 页数
+    keyword = request.args.get("keyword")   # 关键字搜索
+    # 校验参数
+    try:
+        p = int(p)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    filter_list =[]
+    if keyword:
+        filter_list.append(News.title.contains(keyword))
+    # 查询当前用户发布的新闻发布时间倒序，分页查询
+    try:
+        pn = News.query.filter(*filter_list).order_by(News.create_time.desc()).paginate(p, ADMIN_NEWS_PAGE_MAX_COUNT)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg=error_map[RET.DBERR])
+
+    data = {
+        "news_list": [news.to_review_dict() for news in pn.items],
+        "total_page": pn.pages,
+        "cur_page": pn.page
+
+    }  # 注意要传递的数据是否正确
+
+    return render_template("admin/news_edit.html", data=data)
