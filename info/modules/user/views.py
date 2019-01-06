@@ -144,7 +144,7 @@ def news_release():
         # 将分类数据传入模版渲染
         return render_template("news/user_news_release.html", categories=categories)
 
-    # POST
+    # POST 提交资料
     # 获取参数
     title = request.form.get("title")
     category_id = request.form.get("category_id")
@@ -152,24 +152,30 @@ def news_release():
     content = request.form.get("content")
     img_file = request.files.get("index_image")
     # 校验参数
-    if not all([title, category_id, digest, img_file, content]):
+    if not all([title, category_id, digest, content, img_file]):
         return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
 
-    # 创建新闻
+    try:
+        category_id = int(category_id)
+    except BaseException as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg=error_map[RET.PARAMERR])
+
+    # 生成一条新闻数据
     news = News()
     news.title = title
     news.category_id = category_id
     news.digest = digest
     news.content = content
 
-    # 将图片上传七牛云空间
     try:
         img_bytes = img_file.read()
-        file_name = file_upload(img_bytes)  # 上传图片生成随机图片名
-        news.index_image_url = QINIU_DOMIN_PREFIX + file_name  # 图片路径注意有无域名前缀
+        file_name = file_upload(img_bytes)  # 上传图片
+        news.index_image_url = QINIU_DOMIN_PREFIX + file_name
     except BaseException as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.THIRDERR, errmsg=error_map[RET.THIRDERR])
+
     # 设置其他数据
     news.source = "个人发布"
     news.user_id = user.id  # 作者id
@@ -177,7 +183,8 @@ def news_release():
 
     # 添加到数据库
     db.session.add(news)
-    # json返回
+
+    # json返回结果
     return jsonify(errno=RET.OK, errmsg=error_map[RET.OK])
 
 
