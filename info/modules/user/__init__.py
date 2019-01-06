@@ -14,9 +14,6 @@ from .views import *
 def check_user_login():
     user = g.user
     print(request.url)
-    if not user and  request.url.endswith(url_for("user.user_info")):
+    if not user :
         # 用户退出且访问路径是/user/user_info 则跳转到首页
         return redirect(url_for("home.index"))
-    elif not user:
-        # 否则 用户未登录统一返回403
-        return abort(403)
